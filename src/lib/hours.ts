@@ -92,16 +92,21 @@ export function openStateLabel(state: OpenState): string {
 }
 
 function formatTime(date: Date): string {
-  return date
-    .toLocaleTimeString('en-CA', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-      timeZone: 'America/Toronto',
-    })
-    .replace(':00', '')
-    .replace(/\s/g, '')
-    .toLowerCase();
+  return (
+    date
+      .toLocaleTimeString('en-CA', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'America/Toronto',
+      })
+      // "10:00 p.m." -> "10pm". en-CA writes p.m. with periods, and separates
+      // it with a narrow no-break space that /\s/ does not match.
+      .replace(':00', '')
+      .replace(/[\s\u202f\u00a0]/g, '')
+      .replace(/\./g, '')
+      .toLowerCase()
+  );
 }
 
 /** "10pm" when it is today, "Mon 8:30am" when it is not. */

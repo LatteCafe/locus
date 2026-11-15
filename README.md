@@ -8,11 +8,20 @@ database and storage.
 
 ## Setup
 
-You need **Node 22 or newer**. This repo has a `.nvmrc`, so with nvm installed:
+You need **Node 22 or newer** — Expo 58 refuses to start on anything older,
+and the seed script cannot read TypeScript without it. This repo has a
+`.nvmrc`, so inside the project folder:
 
 ```bash
 nvm use
 ```
+
+Run that in **every new terminal** you use for this project, or set it once
+and for all with `nvm alias default 22`.
+
+If you see `Unknown file extension ".mts"` or a complaint that Node is
+outdated, this is why: that terminal is on an older Node. Check with
+`node -v`.
 
 Install dependencies:
 

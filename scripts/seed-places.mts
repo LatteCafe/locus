@@ -23,7 +23,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 import { DEFAULT_SCHOOL } from '../src/config/schools.ts';
 import type { PlaceCategory } from '../src/config/sessions.ts';
@@ -227,6 +227,23 @@ function loadManualPlaces(): PlaceRow[] {
 // Import
 // ---------------------------------------------------------------------------
 
+/**
+ * The places already stored under these OSM ids, in PlaceRow shape. Used by
+ * --manual-only so a blank field in manual_places.json does not overwrite
+ * something a full run imported.
+ */
+async function fetchExisting(supabase: SupabaseClient, osmIds: string[]): Promise<PlaceRow[]> {
+  const { data, error } = await supabase
+    .from('places')
+    .select(
+      'name, category, lat, lng, address, opening_hours, hours_note, school_id, osm_id, verified'
+    )
+    .in('osm_id', osmIds);
+  if (error) throw new Error(`Could not read the existing places: ${error.message}`);
+
+  return (data ?? []) as PlaceRow[];
+}
+
 async function main() {
   const manualOnly = process.argv.includes('--manual-only');
   const dryRun = process.argv.includes('--dry-run');
@@ -247,20 +264,42 @@ async function main() {
 
   console.log(`Seeding places for ${DEFAULT_SCHOOL.shortName}`);
 
+  // Created whenever we have a key, so --dry-run can still read the database
+  // and report what a real run would do. Only the writes are skipped.
+  const supabase = serviceKey
+    ? createClient(url, serviceKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      })
+    : null;
+
   const manual = loadManualPlaces();
   console.log(`  ${manual.length} places from seed/manual_places.json`);
 
-  let fromOsm: PlaceRow[] = [];
-  if (!manualOnly) {
+  // Rows the manual entries are merged on top of, below.
+  let base: PlaceRow[] = [];
+  if (manualOnly) {
+    // There is no OSM pass to merge against, and the manual entries leave
+    // opening_hours blank on purpose. Sent as-is they would wipe the hours a
+    // full run imported, so merge over what is already in the database.
+    if (supabase) {
+      base = await fetchExisting(
+        supabase,
+        manual.map((place) => place.osm_id)
+      );
+      console.log(`  ${base.length} of them already in the database`);
+    } else {
+      console.log('  no key, so existing rows cannot be read');
+    }
+  } else {
     console.log('  querying OpenStreetMap...');
     const elements = await fetchFromOverpass();
-    fromOsm = elements.map(osmToPlace).filter((p): p is PlaceRow => p !== null);
-    console.log(`  ${fromOsm.length} usable study spots after filtering`);
+    base = elements.map(osmToPlace).filter((p): p is PlaceRow => p !== null);
+    console.log(`  ${base.length} usable study spots after filtering`);
   }
 
   // Manual entries win: they are the ones a human checked.
   const byOsmId = new Map<string, PlaceRow>();
-  for (const place of fromOsm) byOsmId.set(place.osm_id, place);
+  for (const place of base) byOsmId.set(place.osm_id, place);
   for (const place of manual) {
     const existing = byOsmId.get(place.osm_id);
     byOsmId.set(
@@ -290,14 +329,10 @@ async function main() {
   }
   console.log(`    ${'with hours'.padEnd(12)} ${rows.filter((r) => r.opening_hours).length}`);
 
-  if (dryRun) {
+  if (dryRun || !supabase) {
     console.log('\n  --dry-run: nothing written.');
     return;
   }
-
-  const supabase = createClient(url, serviceKey!, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
 
   // Chunked, so one oversized request cannot fail the whole import.
   const CHUNK = 100;
