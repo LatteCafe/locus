@@ -39,3 +39,53 @@ Docs: https://docs.expo.dev/eas/index.md
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+
+---
+
+# Locus project conventions
+
+Locus is a study-spot app for U of T St. George students: check in at a spot,
+time the session, rate the place, compete with friends on hours studied.
+
+## Where things live
+
+- `app/` — expo-router routes only. Route groups: `(auth)`, `(onboarding)`,
+  `(tabs)`, `settings/`. `app/_auth-gate.tsx` does all the redirecting based on
+  session and onboarding state; screens never guard themselves.
+- `src/theme/` — every colour, spacing value and text style. Screens must not
+  hardcode colours or font sizes, and must not set their own background.
+- `src/config/` — all tunable product rules and copy: rank names and
+  thresholds, personality types, grade scale, rating attributes and weights,
+  pomodoro and streak settings, recommendation formula, schools. Change copy
+  and numbers here, never in a screen.
+- `src/components/` — shared UI. Use `Text` rather than React Native's, so
+  type styles stay in the theme.
+- `src/lib/` — Supabase client, auth helpers, generated database types.
+- `supabase/migrations/` — timestamped SQL. Never edit an applied migration;
+  add a new one.
+
+## Rules that matter
+
+- **Timezone**: every week and month boundary is America/Toronto, and weeks
+  start Monday 00:00. Use the `app.week_start` / `app.month_start` SQL helpers.
+- **The timer is timestamps, never a counter.** Elapsed time is always derived
+  from `started_at`, `paused_seconds` and `paused_at`, so it survives the app
+  being killed.
+- **Derived data stays derived.** Hours, ranks, streaks and leaderboards are
+  computed from `sessions` in SQL views and functions. Do not store them.
+- **RLS on every table.** Users write only their own rows. A friend sees your
+  sessions only while your `location_sharing` is on. Leaderboards expose hours
+  and streaks, never places.
+- **Never block a check-in on GPS.** Record `checkin_distance_m` and surface
+  outliers in `admin_suspicious_weeks` for manual review.
+- **Scoring formula lives in TypeScript** (`src/config/ratings.ts`). Public
+  place scores are computed on the client from the aggregated attributes in
+  the `place_attribute_stats` view, so one formula is the source of truth.
+
+## Checks before calling anything done
+
+```
+npm run check      # tsc --noEmit, then eslint
+```
+
+Regenerate database types after a migration: `npm run db:types`.
