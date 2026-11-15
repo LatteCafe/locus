@@ -1,13 +1,15 @@
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { View } from 'react-native';
 
-import { LocusLogo, Screen, Text } from '@/components';
+import { Button, LocusLogo, Screen, Text } from '@/components';
 import { rankDisplayName, rankForHours } from '@/config';
 import { useAuth } from '@/providers/AuthProvider';
 import { useTheme } from '@/theme';
 
 export default function HomeScreen() {
   const theme = useTheme();
+  const router = useRouter();
   const { profile } = useAuth();
 
   // Nothing has been studied yet, so this is everyone's starting rank.
@@ -55,8 +57,16 @@ export default function HomeScreen() {
       >
         <LocusLogo size={56} />
         <Text variant="body" tone="muted" center>
-          The map and check-in arrive in the next phase.
+          Find somewhere to study. Checking in and the timer arrive next.
         </Text>
+        <View style={{ alignSelf: 'stretch', gap: theme.spacing.sm }}>
+          <Button title="Find a spot" onPress={() => router.push('/(tabs)/discover')} />
+          <Button
+            title="Add a missing spot"
+            variant="secondary"
+            onPress={() => router.push('/place/add')}
+          />
+        </View>
       </View>
     </Screen>
   );

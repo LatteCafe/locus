@@ -97,6 +97,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "places"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "invitations_place_id_fkey"
+      columns: ["place_id"]
+isOneToOne: false
+      referencedRelation: "places_with_stats"
+      referencedColumns: ["id"]
     }
                   ]
                 },"place_ratings": {
@@ -129,6 +135,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "places"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "place_ratings_place_id_fkey"
+      columns: ["place_id"]
+isOneToOne: false
+      referencedRelation: "places_with_stats"
+      referencedColumns: ["id"]
     }
                   ]
                 },"place_suggestions": {
@@ -160,6 +172,12 @@ isOneToOne: false
       columns: ["place_id"]
 isOneToOne: false
       referencedRelation: "places"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "place_suggestions_place_id_fkey"
+      columns: ["place_id"]
+isOneToOne: false
+      referencedRelation: "places_with_stats"
       referencedColumns: ["id"]
     }
                   ]
@@ -241,6 +259,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "places"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "sessions_place_id_fkey"
+      columns: ["place_id"]
+isOneToOne: false
+      referencedRelation: "places_with_stats"
+      referencedColumns: ["id"]
     }
                   ]
                 },"user_cosmetics": {
@@ -298,6 +322,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "places"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "sessions_place_id_fkey"
+      columns: ["place_id"]
+isOneToOne: false
+      referencedRelation: "places_with_stats"
+      referencedColumns: ["id"]
     }
                   ]
                 },"place_attribute_stats": {
@@ -311,6 +341,14 @@ isOneToOne: false
                 },"place_session_stats": {
                   Row: {
                     "active_sessions": number | null,"place_id": string,"sessions_30d": number | null,"unique_studiers_30d": number | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
+                },"places_with_stats": {
+                  Row: {
+                    "active_sessions": number | null,"address": string | null,"avg_accessibility": number | null,"avg_atmosphere": number | null,"avg_food": number | null,"avg_outlets": number | null,"avg_smell": number | null,"avg_space": number | null,"avg_washroom": number | null,"category": Database["public"]['Enums']["place_category"],"created_at": string,"created_by": string | null,"hours_note": string | null,"id": string,"lat": number,"lng": number,"modal_volume": Database["public"]['Enums']["volume_level"] | null,"modal_wifi": Database["public"]['Enums']["wifi_level"] | null,"name": string,"opening_hours": string | null,"osm_id": string | null,"photos": (string)[],"rating_count": number | null,"school_id": string | null,"sessions_30d": number | null,"unique_studiers_30d": number | null,"verified": boolean,"volume_loud_count": number | null,"volume_quiet_count": number | null,"volume_silent_count": number | null,"wifi_fast_count": number | null,"wifi_none_count": number | null,"wifi_slow_count": number | null
                   }
                   ComputedFields: never
                   Relationships: [

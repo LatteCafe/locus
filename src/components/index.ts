@@ -1,6 +1,10 @@
+export { AttributeBar } from './AttributeBar';
 export { Button } from './Button';
+export { CategoryIcon } from './CategoryIcon';
+export { GradePill } from './GradePill';
 export { LegalText } from './LegalText';
 export { LocusLogo } from './LocusLogo';
+export { PlaceCard } from './PlaceCard';
 export { Screen } from './Screen';
 export { StepHeader } from './StepHeader';
 export { Text } from './Text';

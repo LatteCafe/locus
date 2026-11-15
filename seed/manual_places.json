@@ -1,0 +1,153 @@
+{
+  "_readme": [
+    "Study spots added by hand, for places OpenStreetMap misses or mis-tags.",
+    "The seed script imports these alongside the OSM results.",
+    "",
+    "Fields:",
+    "  key            required. A stable id for this entry. Never change it once",
+    "                 used, or the seed script will create a duplicate instead",
+    "                 of updating. Stored as osm_id 'manual/<key>'.",
+    "  name           required.",
+    "  category       required. One of: library, cafe, dining_hall, classroom,",
+    "                 coworking, outdoor.",
+    "  lat, lng       required. Find them by right-clicking the spot in Google",
+    "                 Maps and copying the two numbers it shows.",
+    "  osm_id         optional. If the place IS in OpenStreetMap, put its id",
+    "                 here ('way/123', 'node/456', 'relation/789') and this",
+    "                 entry will update that same record instead of duplicating",
+    "                 it.",
+    "  address        optional.",
+    "  opening_hours  optional, in OpenStreetMap syntax, e.g.",
+    "                 'Mo-Fr 08:30-22:00; Sa-Su 10:00-18:00'. LEAVE IT OUT if",
+    "                 you are not sure: a wrong value makes the app claim a",
+    "                 place is open when it is shut. Blank just shows",
+    "                 'Hours not known yet'.",
+    "  hours_note     optional free text for things the syntax cannot express,",
+    "                 e.g. 'Shorter hours during reading week'.",
+    "",
+    "Coordinates below were looked up from OpenStreetMap, not guessed.",
+    "Opening hours are deliberately left blank — please fill them in as you",
+    "confirm them on the ground."
+  ],
+
+  "places": [
+    {
+      "key": "robarts",
+      "name": "Robarts Library",
+      "category": "library",
+      "lat": 43.6644349,
+      "lng": -79.3996531,
+      "osm_id": "way/7991747",
+      "address": "130 St. George St"
+    },
+    {
+      "key": "gerstein",
+      "name": "Gerstein Science Information Centre",
+      "category": "library",
+      "lat": 43.6620848,
+      "lng": -79.3937178,
+      "osm_id": "relation/14756874",
+      "address": "9 King's College Circle"
+    },
+    {
+      "key": "ej_pratt",
+      "name": "E.J. Pratt Library",
+      "category": "library",
+      "lat": 43.6663386,
+      "lng": -79.3912989,
+      "osm_id": "way/8111900",
+      "address": "71 Queen's Park Crescent E"
+    },
+    {
+      "key": "kelly",
+      "name": "John M. Kelly Library",
+      "category": "library",
+      "lat": 43.6649164,
+      "lng": -79.3895354,
+      "osm_id": "way/8027952",
+      "address": "113 St. Joseph St"
+    },
+    {
+      "key": "bora_laskin",
+      "name": "Bora Laskin Law Library",
+      "category": "library",
+      "lat": 43.6658111,
+      "lng": -79.3943632,
+      "osm_id": "way/12000627",
+      "address": "78 Queen's Park"
+    },
+    {
+      "key": "oise",
+      "name": "OISE Library",
+      "category": "library",
+      "lat": 43.6683064,
+      "lng": -79.3985772,
+      "osm_id": "node/862559309",
+      "address": "252 Bloor St W"
+    },
+    {
+      "key": "emmanuel",
+      "name": "Emmanuel College Library",
+      "category": "library",
+      "lat": 43.666578,
+      "lng": -79.3926981,
+      "osm_id": "node/2143284305",
+      "address": "75 Queen's Park"
+    },
+    {
+      "key": "hart_house",
+      "name": "Hart House",
+      "category": "classroom",
+      "lat": 43.6639173,
+      "lng": -79.3939676,
+      "osm_id": "relation/1989",
+      "address": "7 Hart House Circle",
+      "hours_note": "Common rooms and the Arbor Room; hours vary by room."
+    },
+    {
+      "key": "sidney_smith",
+      "name": "Sidney Smith Hall",
+      "category": "classroom",
+      "lat": 43.6623831,
+      "lng": -79.3986223,
+      "osm_id": "way/7948423",
+      "address": "100 St. George St"
+    },
+    {
+      "key": "bahen",
+      "name": "Bahen Centre",
+      "category": "classroom",
+      "lat": 43.6597682,
+      "lng": -79.3972491,
+      "osm_id": "way/141691917",
+      "address": "40 St. George St"
+    },
+    {
+      "key": "myhal",
+      "name": "Myhal Centre",
+      "category": "classroom",
+      "lat": 43.6607752,
+      "lng": -79.3965401,
+      "osm_id": "way/403302492",
+      "address": "55 St. George St"
+    },
+    {
+      "key": "innis",
+      "name": "Innis College",
+      "category": "classroom",
+      "lat": 43.6657609,
+      "lng": -79.3991451,
+      "osm_id": "way/1504222290",
+      "address": "2 Sussex Ave"
+    },
+    {
+      "key": "koffler",
+      "name": "Koffler Student Services Centre",
+      "category": "classroom",
+      "lat": 43.6591433,
+      "lng": -79.3969341,
+      "osm_id": "way/8099717",
+      "address": "214 College St"
+    }
+  ]
+}

@@ -235,3 +235,98 @@ export function computePlaceScore(
   if (weightTotal === 0) return null;
   return attributeAverageToPercent(weightedSum / weightTotal);
 }
+
+// ---------------------------------------------------------------------------
+// Public place scores
+//
+// A place's displayed score is computed from everyone's ratings, aggregated,
+// but weighted by the *viewer's* own preferences. That is deliberate: a
+// silent library genuinely is not everyone's A+, and the onboarding promises
+// as much. The crowd supplies the facts; the viewer supplies the taste.
+// ---------------------------------------------------------------------------
+
+/** The aggregated columns from the `place_attribute_stats` view. */
+export type PlaceAttributeStats = {
+  rating_count: number;
+  avg_atmosphere: number | null;
+  avg_space: number | null;
+  avg_food: number | null;
+  avg_accessibility: number | null;
+  avg_outlets: number | null;
+  avg_smell: number | null;
+  avg_washroom: number | null;
+  wifi_fast_count: number;
+  wifi_slow_count: number;
+  wifi_none_count: number;
+  volume_loud_count: number;
+  volume_quiet_count: number;
+  volume_silent_count: number;
+  modal_wifi: WifiLevel | null;
+  modal_volume: VolumeLevel | null;
+};
+
+/** The crowd's average wifi score, 1–5, or null if nobody said. */
+export function aggregateWifiScore(stats: PlaceAttributeStats): number | null {
+  const total = stats.wifi_fast_count + stats.wifi_slow_count + stats.wifi_none_count;
+  if (total === 0) return null;
+  const fast = WIFI_OPTIONS.find((o) => o.value === 'fast')!.score;
+  const slow = WIFI_OPTIONS.find((o) => o.value === 'slow')!.score;
+  const none = WIFI_OPTIONS.find((o) => o.value === 'none')!.score;
+  return (
+    (stats.wifi_fast_count * fast + stats.wifi_slow_count * slow + stats.wifi_none_count * none) /
+    total
+  );
+}
+
+/** The volume most people reported, or null if nobody said. */
+export function aggregateVolume(stats: PlaceAttributeStats): VolumeLevel | null {
+  const counts: [VolumeLevel, number][] = [
+    ['silent', stats.volume_silent_count],
+    ['quiet', stats.volume_quiet_count],
+    ['loud', stats.volume_loud_count],
+  ];
+  const best = counts.reduce((a, b) => (b[1] > a[1] ? b : a));
+  return best[1] > 0 ? best[0] : null;
+}
+
+/**
+ * A place's 0–100 score from crowd data, as this viewer would see it.
+ * Null when nobody has rated it yet — show "Not graded yet", not a zero.
+ */
+export function computePlaceScoreFromStats(
+  stats: PlaceAttributeStats | null | undefined,
+  options?: { preferredVolume?: VolumeLevel; weights?: Partial<RatingWeights> }
+): number | null {
+  if (!stats || stats.rating_count === 0) return null;
+
+  const preferredVolume = options?.preferredVolume ?? DEFAULT_PREFERRED_VOLUME;
+  const weights = { ...DEFAULT_RATING_WEIGHTS, ...(options?.weights ?? {}) };
+
+  const volume = aggregateVolume(stats);
+
+  const scores: Partial<Record<RatingAttributeId, number | null>> = {
+    atmosphere: stats.avg_atmosphere,
+    wifi: aggregateWifiScore(stats),
+    volume: volume ? VOLUME_SCORES[preferredVolume][volume] : null,
+    space: stats.avg_space,
+    food: stats.avg_food,
+    accessibility: stats.avg_accessibility,
+    outlets: stats.avg_outlets,
+    smell: stats.avg_smell,
+    washroom: stats.avg_washroom,
+  };
+
+  let weightedSum = 0;
+  let weightTotal = 0;
+  for (const attribute of RATING_ATTRIBUTES) {
+    const score = scores[attribute.id];
+    if (score === null || score === undefined) continue;
+    const weight = weights[attribute.id] ?? 0;
+    if (weight <= 0) continue;
+    weightedSum += score * weight;
+    weightTotal += weight;
+  }
+
+  if (weightTotal === 0) return null;
+  return attributeAverageToPercent(weightedSum / weightTotal);
+}

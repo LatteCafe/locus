@@ -5,7 +5,7 @@ is meant to be copied and pasted into your Terminal.
 
 ---
 
-## 1. Create the Supabase project
+## 1. Create the Supabase project (done)
 
 1. Go to <https://supabase.com> and sign up (free tier is fine).
 2. Click **New project**.
@@ -16,7 +16,7 @@ is meant to be copied and pasted into your Terminal.
      options.
 3. Wait for it to finish setting up (a minute or two).
 
-## 2. Put your keys in the app
+## 2. Put your keys in the app (done)
 
 In the Supabase dashboard for your new project:
 
@@ -150,6 +150,121 @@ Manager first.
 
 If you delete your account you can sign up again with the same email — it
 starts fresh.
+
+---
+
+## 6. Phase 1: fill the map with study spots
+
+The app knows how to show study spots, but your database has none yet. The
+seed script pulls them from OpenStreetMap and adds the campus places I
+curated by hand.
+
+### Get the service role key
+
+The seed script writes places directly, which your own security rules block —
+they only let a signed-in person add a place under their own name. That is
+correct and not worth weakening for a one-off script, so the script uses the
+**service_role** key, which bypasses the rules.
+
+1. Supabase dashboard -> **Project Settings** -> **API Keys**.
+2. Copy the key marked **service_role** (it is hidden behind a "Reveal"
+   button, because it is the dangerous one).
+3. Add it to `.env` as a new line:
+
+   ```
+   SUPABASE_SERVICE_ROLE_KEY=paste-it-here
+   ```
+
+> Note there is **no** `EXPO_PUBLIC_` on the front of that name. Anything
+> starting with `EXPO_PUBLIC_` gets baked into the app that ships to phones,
+> where anyone can read it. This key must never go there. `.env` is already
+> ignored by git, so it will not reach GitHub either.
+
+### Get the Google Maps key (Android only)
+
+The map is drawn by Google Maps on Android, and **Google Maps shows a blank
+grey screen without an API key, with no error telling you why**. iOS uses
+Apple Maps and needs nothing. Since we are testing on an Android emulator,
+you need this.
+
+1. Go to <https://console.cloud.google.com> and sign in.
+2. Create a project if you have none: the project dropdown at the top left ->
+   **New Project** -> name it `locus` -> **Create**. Wait for it to switch.
+3. In the search bar at the top, type **Maps SDK for Android**, open it, and
+   click **Enable**.
+   - It will ask you to set up billing first. You have to give card details,
+     but Maps has a free monthly usage allowance that development traffic
+     will not come close to. If that still makes you uneasy, set a cap under
+     **Google Maps Platform -> Quotas**.
+4. Go to **APIs & Services -> Credentials**.
+5. **Create credentials -> API key**. Copy the key it shows you.
+6. Click **Edit API key** on the key you just made and, under **API
+   restrictions**, choose **Restrict key** and tick only **Maps SDK for
+   Android**. Save.
+   - This means a leaked key can only draw maps, not run up a bill on other
+     Google services. Locking it to a specific app as well needs a signing
+     fingerprint we will not have until we make real builds in Phase 9.
+7. Add it to `.env`:
+
+   ```
+   GOOGLE_MAPS_ANDROID_API_KEY=paste-it-here
+   ```
+
+### Run it
+
+```bash
+npm run seed:places
+```
+
+It takes a minute. You should see something like:
+
+```
+  13 places from seed/manual_places.json
+  querying OpenStreetMap...
+  OpenStreetMap returned 211 results
+  175 usable study spots after filtering
+
+  181 places to import:
+    cafe         114
+    classroom    6
+    dining_hall  4
+    library      29
+    outdoor      28
+    with hours   58
+```
+
+OpenStreetMap's free servers are often busy; the script tries three mirrors
+and backs off before giving up. If it fails anyway, wait a few minutes and run
+it again, or run `npm run seed:places -- --manual-only` to import just the 13
+campus spots.
+
+Running it twice is safe: places are matched on their OpenStreetMap id, so a
+second run updates rather than duplicates.
+
+### Adding spots by hand
+
+`seed/manual_places.json` is yours to extend — college common rooms, specific
+floors, anywhere OpenStreetMap misses. The file explains each field at the
+top. Opening hours are deliberately left blank on the entries I added: I would
+rather the app say "Hours not known" than confidently tell someone a library
+is open when it is shut. Fill them in as you confirm them.
+
+### What you should be able to test
+
+| Thing to try         | What should happen                                 |
+| -------------------- | -------------------------------------------------- |
+| Map tab              | Pins across campus, each with its category icon    |
+| Tap a category chip  | Map filters to just those                          |
+| Tap a pin            | A card slides in at the bottom                     |
+| Closed places        | Faded, not hidden                                  |
+| Discover tab         | Spots sorted by a mix of distance and rating       |
+| "Open now" chip      | Only currently-open spots                          |
+| Allow location       | Distances and walking times appear                 |
+| Deny location        | Still works, sorted by rating alone                |
+| Tap a spot           | Detail page: grade, crowd attributes, weekly hours |
+| An unrated spot      | Shows a dash, not an F                             |
+| Suggest a correction | Form submits, says thanks                          |
+| Add a missing spot   | Pins it where you are standing                     |
 
 ---
 
